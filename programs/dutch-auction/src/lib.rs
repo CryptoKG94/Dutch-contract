@@ -1,5 +1,5 @@
 pub mod metadata;
-use anchor_lang::{prelude::*, solana_program::system_program};
+use anchor_lang::{prelude::*, solana_program::system_program, accounts::program_account::ProgramAccount};
 use anchor_spl::token::{Mint, TokenAccount};
 use spl_token::instruction::{approve, revoke};
 
@@ -295,7 +295,7 @@ pub struct InitAuction<'info> {
         payer=initializer,
         space=8+32*3+8*6+1,
     )]
-    auction_account: Account<'info, AuctionAccount>,
+    auction_account: ProgramAccount<'info, AuctionAccount>,
     #[account(address = system_program::ID)]
     system_program: AccountInfo<'info>,
     rent: Sysvar<'info, Rent>,
@@ -317,7 +317,7 @@ pub struct CancelAuction<'info> {
         bump=auction_account.bump,
         close = initializer
     )]
-    auction_account: Account<'info, AuctionAccount>,
+    auction_account: ProgramAccount<'info, AuctionAccount>,
     token_authority: AccountInfo<'info>,
     #[account(address = system_program::ID)]
     system_program: AccountInfo<'info>,
@@ -343,7 +343,7 @@ pub struct DutchAuction<'info> {
         bump=auction_account.bump,
         close = initializer
     )]
-    auction_account: Account<'info, AuctionAccount>,
+    auction_account: ProgramAccount<'info, AuctionAccount>,
     #[account(mut, constraint = sales_tax_recipient.key.to_string() == SALES_TAX_RECIPIENT_INTERNAL)]
     sales_tax_recipient: AccountInfo<'info>,
     token_authority: AccountInfo<'info>,
