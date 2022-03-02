@@ -3,7 +3,7 @@ use anchor_lang::{prelude::*, solana_program::system_program};
 use anchor_spl::token::{Mint, TokenAccount};
 use spl_token::instruction::{approve, revoke};
 
-declare_id!("dtchBqYrywpfV6uKkrrRo8fW56Lg6cfAKMEgTt8sUXx");
+declare_id!("F93nCR6gwq168KHLPNuY8VSK4eW6Dh9rwUe8Mkf8zPGY");
 
 const SALES_TAX_RECIPIENT_INTERNAL: &str = "3iYf9hHQPciwgJ1TCjpRUp1A3QW4AfaK7J6vCmETRMuu";
 const SALES_TAX: u64 = 99;
@@ -19,6 +19,11 @@ pub mod dutch_auction {
         system_instruction,
     };
 
+    /**
+    Function to do auction.
+    buyer can do auction by using function.
+    main function: NFT approve
+     */
     pub fn init_auction(
         ctx: Context<InitAuction>,
         starting_price: u64,
@@ -72,6 +77,10 @@ pub mod dutch_auction {
         Ok(())
     }
 
+    /**
+    Function to cancel auction.
+    user cancels auction by using revoke function.
+     */
     pub fn cancel_auction<'info>(ctx: Context<CancelAuction>) -> ProgramResult {
         let token_program = &ctx.accounts.token_program;
         let initializer = &ctx.accounts.initializer;
@@ -102,6 +111,9 @@ pub mod dutch_auction {
         Ok(())
     }
 
+    /**
+    Buy function. it has royalty and tax fee function.
+     */
     pub fn buy<'a, 'b, 'c, 'info>(
         ctx: Context<'a, 'b, 'c, 'info, DutchAuction<'info>>,
         fe_price: u64,
@@ -119,6 +131,7 @@ pub mod dutch_auction {
         let authority_seeds = [PREFIX, &[token_authority_bump]];
 
         // if taker == initializer, return the token
+        // initializer can't buy. 
         if *ctx.accounts.taker.key == auction.initializer_pubkey {
             invoke_signed(
                 &revoke(
@@ -227,6 +240,7 @@ pub mod dutch_auction {
         }
 
         // tax payout
+        // contract owner gets tax fee.
         let tax_amount = (SALES_TAX * fe_price) / 10000;
         invoke(
             &system_instruction::transfer(
@@ -256,6 +270,7 @@ pub mod dutch_auction {
             ],
         )?;
 
+        // NFT to buyer.
         let token_amount = 10_u64.pow(ctx.accounts.mint_account.decimals as u32);
         invoke_signed(
             &spl_token::instruction::transfer(
