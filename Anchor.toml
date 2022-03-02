@@ -3,13 +3,13 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
-dutch_auction = "F93nCR6gwq168KHLPNuY8VSK4eW6Dh9rwUe8Mkf8zPGY"
+dutch_auction = "ATr4QpNHBjnT14tUEei26zsyMo6AyN9yaAoeLhg3ue26"
 
 [programs.devnet]
-dutch_auction = "F93nCR6gwq168KHLPNuY8VSK4eW6Dh9rwUe8Mkf8zPGY"
+dutch_auction = "ATr4QpNHBjnT14tUEei26zsyMo6AyN9yaAoeLhg3ue26"
 
 [programs.mainnet]
-dutch_auction = "F93nCR6gwq168KHLPNuY8VSK4eW6Dh9rwUe8Mkf8zPGY"
+dutch_auction = "ATr4QpNHBjnT14tUEei26zsyMo6AyN9yaAoeLhg3ue26"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

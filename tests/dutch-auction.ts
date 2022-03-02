@@ -6,7 +6,7 @@ import {
 import assert from "assert";
 import { createMetadata, Creator, Data } from "./metadata/metadata";
 
-const MY_WALLET = "/home/ubuntu/.config/solana/id.json";
+const MY_WALLET = "/root/.config/solana/id.json";
 
 describe("dutch-auction", () => {
   // Address of the deployed program.
@@ -23,18 +23,24 @@ describe("dutch-auction", () => {
     )
   );
 
+  const opts = {
+    preflightCommitment: "processed"
+  }
+  const network = "http://127.0.0.1:8899"; // "https://api.devnet.solana.com/",
+
   const connection = new anchor.web3.Connection(
-    "https://api.devnet.solana.com/",
-    "recent"
+    network,
+    opts.preflightCommitment
   );
 
-  const walletWrapper = new anchor.Wallet(myWallet);
+  // const walletWrapper = new anchor.Wallet(myWallet);
 
-  const provider = new anchor.Provider(connection, walletWrapper, {
-    preflightCommitment: "recent",
-    skipPreflight: true,
-  });
+  // const provider = new anchor.Provider(connection, walletWrapper, {
+  //   preflightCommitment: "recent",
+  //   skipPreflight: true,
+  // });
 
+  const provider = anchor.Provider.env();
   const program = new anchor.Program(idl, programId, provider);
 
   const startingPrice = 10000;

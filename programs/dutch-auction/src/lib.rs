@@ -3,7 +3,7 @@ use anchor_lang::{prelude::*, solana_program::system_program, accounts::program_
 use anchor_spl::token::{Mint, TokenAccount};
 use spl_token::instruction::{approve, revoke};
 
-declare_id!("F93nCR6gwq168KHLPNuY8VSK4eW6Dh9rwUe8Mkf8zPGY");
+declare_id!("ATr4QpNHBjnT14tUEei26zsyMo6AyN9yaAoeLhg3ue26");
 
 const SALES_TAX_RECIPIENT_INTERNAL: &str = "3iYf9hHQPciwgJ1TCjpRUp1A3QW4AfaK7J6vCmETRMuu";
 const SALES_TAX: u64 = 99;
