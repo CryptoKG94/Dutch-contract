@@ -6,6 +6,7 @@ import {
 import assert from "assert";
 import { createMetadata, Creator, Data } from "./metadata/metadata";
 
+const MY_WALLET = "/home/ubuntu/.config/solana/id.json";
 
 describe("dutch-auction", () => {
   // Address of the deployed program.
@@ -18,7 +19,7 @@ describe("dutch-auction", () => {
 
   const myWallet = anchor.web3.Keypair.fromSecretKey(
     new Uint8Array(
-      JSON.parse(require("fs").readFileSync(process.env.MY_WALLET, "utf8"))
+      JSON.parse(require("fs").readFileSync(MY_WALLET, "utf8"))
     )
   );
 
