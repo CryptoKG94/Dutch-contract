@@ -1,17 +1,22 @@
 import * as anchor from "@project-serum/anchor";
+import { Program } from '@project-serum/anchor';
+import NodeWallet from '@project-serum/anchor/dist/cjs/nodewallet';
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
-  PublicKey, sendAndConfirmTransaction, Transaction
+  PublicKey, sendAndConfirmTransaction, Transaction, SystemProgram, Connection, Commitment
 } from "@solana/web3.js";
 import assert from "assert";
 import { createMetadata, Creator, Data } from "./metadata/metadata";
 
+import { DutchAuction } from '../target/types/dutch_auction';
+
 const MY_WALLET = "/root/.config/solana/id.json";
 
 describe("dutch-auction", () => {
+
   // Address of the deployed program.
   const programId = new anchor.web3.PublicKey(
-    "dtchBqYrywpfV6uKkrrRo8fW56Lg6cfAKMEgTt8sUXx"
+    "ATr4QpNHBjnT14tUEei26zsyMo6AyN9yaAoeLhg3ue26"
   );
   const idl = JSON.parse(
     require("fs").readFileSync("./target/idl/dutch_auction.json", "utf8")
@@ -23,16 +28,6 @@ describe("dutch-auction", () => {
     )
   );
 
-  const opts = {
-    preflightCommitment: "processed"
-  }
-  const network = "http://127.0.0.1:8899"; // "https://api.devnet.solana.com/",
-
-  const connection = new anchor.web3.Connection(
-    network,
-    opts.preflightCommitment
-  );
-
   // const walletWrapper = new anchor.Wallet(myWallet);
 
   // const provider = new anchor.Provider(connection, walletWrapper, {
@@ -40,7 +35,22 @@ describe("dutch-auction", () => {
   //   skipPreflight: true,
   // });
 
+
+  const commitment: Commitment = 'processed';
+  const network = "http://127.0.0.1:8899"; // "https://api.devnet.solana.com/",
+  const connection = new Connection(
+    network,
+    {
+      commitment
+    }
+  );
+  const options = anchor.Provider.defaultOptions();
+
+  // const provider = new anchor.Provider(connection,  options);
   const provider = anchor.Provider.env();
+  anchor.setProvider(provider);
+
+  // const program = anchor.workspace.DutchAuction as Program<DutchAuction>;
   const program = new anchor.Program(idl, programId, provider);
 
   const startingPrice = 10000;
@@ -50,7 +60,7 @@ describe("dutch-auction", () => {
   let startingTs: number;
 
   const salesTaxRecipientPubkey = new PublicKey(
-    "3iYf9hHQPciwgJ1TCjpRUp1A3QW4AfaK7J6vCmETRMuu"
+    "HTASMTqa1Q8JGQHDfAd3PucjSzgsF1dCzpNk2wxkJwkL"
   );
 
   const mintAuthority = anchor.web3.Keypair.generate();
@@ -86,8 +96,18 @@ describe("dutch-auction", () => {
 
   it("Init Auction", async () => {
     // create nft related stuff
+    console.log("🚀 start test... ");
+
+    // Airdropping tokens to a payer.
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(initializer.publicKey, 1000000000),
+      "confirmed"
+    );
+
+    console.log("🚀 after airdrop... ");
+
     mint = await Token.createMint(
-      connection,
+      provider.connection,
       initializer,
       mintAuthority.publicKey,
       null,
@@ -95,9 +115,13 @@ describe("dutch-auction", () => {
       TOKEN_PROGRAM_ID
     );
 
+    console.log("🚀 after createMint... ");
     tokenPubkey = await mint.createAccount(initializer.publicKey);
+
+    console.log("🚀 after createAccount... ");
     await mint.mintTo(tokenPubkey, mintAuthority.publicKey, [mintAuthority], 1);
 
+    console.log("🚀 after mintTo... ");
     const signers = [creator1, mintAuthority];
     let instructions = [];
     metadata = await createMetadata(
@@ -119,24 +143,34 @@ describe("dutch-auction", () => {
           }),
         ],
       }),
-      creator1.publicKey, // update authority
+      initializer.publicKey, // update authority
       mint.publicKey,
       mintAuthority.publicKey, // mint authority
       instructions,
-      creator1.publicKey
+      initializer.publicKey
     );
+
+    console.log("🚀 after createMetadata... ", instructions);
     const transaction = new Transaction();
     instructions.forEach((instruction) => transaction.add(instruction));
+
     transaction.recentBlockhash = (
-      await connection.getRecentBlockhash("singleGossip")
+      await provider.connection.getRecentBlockhash(commitment)
     ).blockhash;
 
-    transaction.setSigners(...signers.map((s) => s.publicKey));
+    console.log("🚀 after getRecentBlockhash... ");
+
+    // transaction.setSigners(...signers.map((s) => s.publicKey));
     // transaction.partialSign(...signers);
 
-    await sendAndConfirmTransaction(connection, transaction, signers, {
-      skipPreflight: true,
-    });
+    await sendAndConfirmTransaction(
+      provider.connection,
+      transaction,
+      [initializer, mintAuthority], {
+        skipPreflight: true,
+      }
+    );
+    console.log("🚀 after sendAndConfirmTransaction... ");
   });
 
   it("Auction Cancel", async () => {
